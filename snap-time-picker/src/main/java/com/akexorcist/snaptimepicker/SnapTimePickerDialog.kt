@@ -42,6 +42,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
     private var suffix: Int = -1
     private var titleColor: Int = -1
     private var themeColor: Int = -1
+    private var minutesStep: Int = 1
     private var listener: Listener? = null
 
     private var lastSelectedHour = -1
@@ -58,6 +59,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
         private const val EXTRA_PREFIX = "com.akexorcist.snaptimepicker.prefix"
         private const val EXTRA_TITLE_COLOR = "com.akexorcist.snaptimepicker.title_color"
         private const val EXTRA_THEME_COLOR = "com.akexorcist.snaptimepicker.theme_color"
+        private const val EXTRA_MINUTES_STEP = "com.akexorcist.snaptimepicker.minutes_step"
         private const val MIN_HOUR = 0
         private const val MAX_HOUR = 23
         private const val MIN_MINUTE = 0
@@ -73,7 +75,8 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
             prefix: Int,
             suffix: Int,
             titleColor: Int,
-            themeColor: Int
+            themeColor: Int,
+            minutesStep: Int
         ): SnapTimePickerDialog = SnapTimePickerDialog().apply {
             isCancelable = false
             arguments = Bundle().apply {
@@ -85,6 +88,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
                 putInt(EXTRA_SUFFIX, suffix)
                 putInt(EXTRA_TITLE_COLOR, titleColor)
                 putInt(EXTRA_THEME_COLOR, themeColor)
+                putInt(EXTRA_MINUTES_STEP, minutesStep)
             }
         }
     }
@@ -115,7 +119,14 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
                 textViewTimeSuffix.text = getString(suffix)
             }
             if (titleColor != -1) {
-                context?.let { context -> textViewTitle.setTextColor(ContextCompat.getColor(context, titleColor)) }
+                context?.let { context ->
+                    textViewTitle.setTextColor(
+                        ContextCompat.getColor(
+                            context,
+                            titleColor
+                        )
+                    )
+                }
             }
             if (themeColor != -1) {
                 context?.let { context ->
@@ -149,6 +160,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
         suffix = bundle?.getInt(EXTRA_SUFFIX, -1) ?: -1
         themeColor = bundle?.getInt(EXTRA_THEME_COLOR, -1) ?: -1
         titleColor = bundle?.getInt(EXTRA_TITLE_COLOR, -1) ?: -1
+        minutesStep = bundle?.getInt(EXTRA_MINUTES_STEP, 1) ?: 1
     }
 
     override fun initialize() {
@@ -166,6 +178,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
         suffix = savedInstanceState?.getInt(EXTRA_SUFFIX, -1) ?: -1
         themeColor = savedInstanceState?.getInt(EXTRA_THEME_COLOR, -1) ?: -1
         titleColor = savedInstanceState?.getInt(EXTRA_TITLE_COLOR, -1) ?: -1
+        minutesStep = savedInstanceState?.getInt(EXTRA_MINUTES_STEP, 1) ?: 1
     }
 
     override fun restore() {
@@ -184,6 +197,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
         outState?.putInt(EXTRA_SUFFIX, suffix)
         outState?.putInt(EXTRA_THEME_COLOR, themeColor)
         outState?.putInt(EXTRA_TITLE_COLOR, titleColor)
+        outState?.putInt(EXTRA_MINUTES_STEP, minutesStep)
     }
 
     override fun setup() {}
@@ -338,8 +352,10 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
 
     private fun initMinuteList(includeAll: Boolean) {
         this.minuteList = listOf()
-        for (index in MIN_MINUTE..MAX_MINUTE) {
-            minuteList += index
+
+        val minutesToAddCount = (MIN_MINUTE..MAX_MINUTE).count() / minutesStep
+        for (index in 0 until minutesToAddCount) {
+            minuteList += (index * minutesStep)
         }
         minuteAdapter.setItemList(minuteList)
         if (!includeAll && preselectedTime != null &&
@@ -483,7 +499,9 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
             minute = minuteAdapter.getValueByPosition(minuteLayoutManager.getPosition(view))
         }
         val hourSnappedView = hourSnapHelper.findSnapView(hourLayoutManager)
-        hourSnappedView?.let { view -> hour = hourAdapter.getValueByPosition(hourLayoutManager.getPosition(view)) }
+        hourSnappedView?.let { view ->
+            hour = hourAdapter.getValueByPosition(hourLayoutManager.getPosition(view))
+        }
         listener?.onTimePicked(hour, minute)
         targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, Intent().apply {
             putExtra(EXTRA_SELECTED_HOUR, hour)
@@ -530,6 +548,7 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
         private var suffix: Int = -1
         private var titleColor: Int = -1
         private var themeColor: Int = -1
+        private var minutesStep: Int = 1
 
         fun setPreselectedTime(time: TimeValue): Builder = this.apply {
             preselectedTime = time
@@ -563,6 +582,10 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
             isUseViewModel = true
         }
 
+        fun setMinutesStep(step: Int): Builder = this.apply {
+            minutesStep = if (step <= 0) 1 else step
+        }
+
         fun build(): SnapTimePickerDialog =
             SnapTimePickerDialog.newInstance(
                 selectableTimeRange,
@@ -572,7 +595,8 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
                 prefix,
                 suffix,
                 titleColor,
-                themeColor
+                themeColor,
+                minutesStep
             )
     }
 }
