@@ -353,9 +353,8 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
     private fun initMinuteList(includeAll: Boolean) {
         this.minuteList = listOf()
 
-        val minutesToAddCount = (MIN_MINUTE..MAX_MINUTE).count() / minutesStep
-        for (index in 0 until minutesToAddCount) {
-            minuteList += (index * minutesStep)
+        for (index in MIN_MINUTE..MAX_MINUTE step minutesStep) {
+            minuteList += index
         }
         minuteAdapter.setItemList(minuteList)
         if (!includeAll && preselectedTime != null &&
@@ -396,7 +395,8 @@ class SnapTimePickerDialog : BaseSnapTimePickerDialogFragment() {
 
     private fun updateMinuteListWithRange(startMinute: Int, endMinute: Int) {
         this.minuteList = listOf()
-        for (index in MIN_MINUTE..MAX_MINUTE) {
+
+        for (index in MIN_MINUTE..MAX_MINUTE step minutesStep) {
             if (startMinute != -1 && endMinute != -1) {
                 if (index in startMinute..endMinute) {
                     minuteList += index

@@ -29,9 +29,11 @@ class MainActivity : AppCompatActivity() {
                 setTitle(R.string.title)
                 setPrefix(R.string.time_prefix)
                 setSuffix(R.string.time_suffix)
+                setPreselectedTime(TimeValue(11, 34))
+                setSelectableTimeRange(TimeRange(TimeValue(11, 0), TimeValue(0, 0)))
                 setThemeColor(R.color.colorAccent)
                 setTitleColor(R.color.colorWhite)
-                setMinutesStep(60)
+                setMinutesStep(30)
             }.build().apply {
                 setListener { hour, minute -> onTimePicked(hour, minute) }
             }.show(supportFragmentManager, SnapTimePickerDialog.TAG)
